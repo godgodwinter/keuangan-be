@@ -19,13 +19,13 @@ class AuthController extends Controller
     public function login(Request $request)
     {
         $request->validate([
-            'email' => 'required|',
+            'username' => 'required|',
             'password' => 'required|string',
         ]);
-        $email = $request->email;
+        $username = $request->username;
         // $credentials = $request->only('email', 'password');
         $credentials = [
-            'email' => $email,
+            'username' => $username,
             'password' => $request->password,
         ];
         // dd($credentials);
@@ -33,14 +33,14 @@ class AuthController extends Controller
             return $this->respondWithToken($token);
         }
         $credentials = [
-            'username' => $email,
+            'username' => $username,
             'password' => $request->password,
         ];
         if ($token = $this->guard()->attempt($credentials)) {
             return $this->respondWithToken($token);
         }
         $credentials = [
-            'nomeridentitas' => $email,
+            'nomeridentitas' => $username,
             'password' => $request->password,
         ];
         if ($token = $this->guard()->attempt($credentials)) {
@@ -70,6 +70,7 @@ class AuthController extends Controller
         $token = Auth::login($user);
         return response()->json([
             'status' => 'success',
+            'data' => $token,
             'message' => 'User created successfully',
             'user' => $user,
             'authorisation' => [
@@ -118,11 +119,16 @@ class AuthController extends Controller
     protected function respondWithToken($token)
     {
         return response()->json([
-            'token' => $token,
+            'data' => (object)[
+                'token' => $token,
+                'me' => $this->guard()->user(),
+                'newToken' => $token,
+                'status' => true,
+            ],
+            'message' => "Success",
             'code' => 200,
             'token_type' => 'bearer',
             'expires_in' => $this->guard()->factory()->getTTL() * 1,  //auto logout after 1 hour (default)
-            // 'tapel_aktif' => Fungsi::app_tapel_aktif(),
         ]);
     }
     /**

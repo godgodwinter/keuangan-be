@@ -41,7 +41,7 @@ class oneseeder extends Seeder
             'nama' => 'Admin Paijo',
             'email' => 'admin@gmail.com',
             'username' => 'admin',
-            'nomeridentitas' => '1',
+            'nomeridentitas' => '123',
             'password' => Hash::make('admin'),
             'created_at' => Carbon::now(),
             'updated_at' => Carbon::now()

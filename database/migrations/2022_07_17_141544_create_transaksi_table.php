@@ -20,8 +20,8 @@ return new class extends Migration
             $table->text('desc')->nullable();
             $table->string('jenis')->default('Pemasukan')->nullable();
             $table->string('nominal')->nullable();
-            $table->string('kategori_id')->default('Pemasukan')->nullable();
-            $table->string('users_id')->nullable();
+            $table->bigInteger('kategori_id')->nullable();
+            $table->bigInteger('users_id')->nullable();
             $table->softDeletes();
             $table->timestamps();
         });

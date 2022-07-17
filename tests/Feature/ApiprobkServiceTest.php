@@ -21,44 +21,44 @@ class ApiprobkServiceTest extends TestCase
         $this->apiprobkService = $this->app->make(ApiprobkService::class);
     }
 
-    public function testApiprobkNotNull()
-    {
-        self::assertNotNull($this->apiprobkService);
-    }
+    // public function testApiprobkNotNull()
+    // {
+    //     self::assertNotNull($this->apiprobkService);
+    // }
 
     public function testGetAll()
     {
         $result = $this->apiprobkService->getAll();
         self::assertNotNull($result);
     }
-    // public function testSaveApiprobk()
+    // // public function testSaveApiprobk()
+    // // {
+    // //     $nama = 'nama';
+    // //     $desc = 'desc';
+    // //     $photo = 'photo';
+    // //     $this->apiprobkService->saveApiprobk($nama, $desc, $photo);
+    // //     $result = $this->apiprobkService->getAll();
+    // //     self::assertNotNull($result);
+    // // }
+
+
+    // // public function testSaveApiprobk2()
+    // // {
+    // //     $request = [
+    // //         'nama' => 'nama',
+    // //         'desc' => 'desc',
+    // //         'photo' => 'photo',
+    // //     ];
+    // //     $this->apiprobkService->saveApiprobk2($request);
+    // //     $result = $this->apiprobkService->getAll();
+    // //     self::assertNotNull($result);
+    // // }
+
+    // public function testFungsi2()
     // {
-    //     $nama = 'nama';
-    //     $desc = 'desc';
-    //     $photo = 'photo';
-    //     $this->apiprobkService->saveApiprobk($nama, $desc, $photo);
-    //     $result = $this->apiprobkService->getAll();
-    //     self::assertNotNull($result);
+    //     $item = Fungsi2::rupiah(20000);
+    //     // dd($item);
+    //     self::assertEquals('Rp 20.000,00', $item);
+    //     // self::assertEquals('Rp 20.000,00');
     // }
-
-
-    // public function testSaveApiprobk2()
-    // {
-    //     $request = [
-    //         'nama' => 'nama',
-    //         'desc' => 'desc',
-    //         'photo' => 'photo',
-    //     ];
-    //     $this->apiprobkService->saveApiprobk2($request);
-    //     $result = $this->apiprobkService->getAll();
-    //     self::assertNotNull($result);
-    // }
-
-    public function testFungsi2()
-    {
-        $item = Fungsi2::rupiah(20000);
-        // dd($item);
-        self::assertEquals('Rp 20.000,00', $item);
-        // self::assertEquals('Rp 20.000,00');
-    }
 }

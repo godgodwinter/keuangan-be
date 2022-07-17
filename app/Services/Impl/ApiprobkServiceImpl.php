@@ -12,7 +12,7 @@ class ApiprobkServiceImpl implements ApiprobkService
 {
     public function getAll()
     {
-        return DB::table('apiprobk')->get();
+        return DB::table('transaksi')->get();
     }
 
     public function saveApiprobk($nama, string $desc, string $photo): void

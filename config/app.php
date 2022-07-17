@@ -184,6 +184,7 @@ return [
         Maatwebsite\Excel\ExcelServiceProvider::class,
         App\Providers\ApiprobkServiceProvider::class,
         App\Providers\hasilPsikologiServiceProvider::class,
+        App\Providers\TransaksiServiceProvider::class,
 
 
     ],

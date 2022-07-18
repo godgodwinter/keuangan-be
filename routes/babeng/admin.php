@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\admin\adminAdministratorController;
 use App\Http\Controllers\admin\adminKategoriController;
 use App\Http\Controllers\admin\adminProsesController;
 use App\Http\Controllers\AuthController;
@@ -24,6 +25,13 @@ Route::middleware('auth:api')->group(
         Route::get('/admin/kategori/{item}', [adminKategoriController::class, 'edit']);
         Route::put('/admin/kategori/{item}', [adminKategoriController::class, 'update']);
         Route::delete('/admin/kategori/{item}', [adminKategoriController::class, 'destroy']);
+
+        Route::get('/admin/users', [adminAdministratorController::class, 'index']);
+        Route::post('/admin/users', [adminAdministratorController::class, 'store']);
+        Route::get('/admin/users/{item}', [adminAdministratorController::class, 'edit']);
+        Route::put('/admin/users/{item}', [adminAdministratorController::class, 'update']);
+        Route::delete('/admin/users/{item}', [adminAdministratorController::class, 'destroy']);
+        Route::delete('/admin/users/{item}/force', [adminAdministratorController::class, 'destroyForce']);
 
 
         Route::post('/admin/proses/cleartemp ', [adminProsesController::class, 'clearTemp']);

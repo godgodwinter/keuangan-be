@@ -23,7 +23,7 @@ class adminAdministratorController extends Controller
     {
         //set validation
         $validator = Validator::make($request->all(), [
-            'name'   => 'required',
+            'nama'   => 'required',
         ]);
 
         $items = 'Data berhasil di tambahkan';
@@ -31,7 +31,7 @@ class adminAdministratorController extends Controller
         // apiprobk::create($data);
 
         $user = User::create([
-            'name' => $request->name,
+            'nama' => $request->nama,
             'email' => $request->email,
             'username' => $request->username,
             'nomeridentitas' => $request->nomeridentitas,
@@ -41,6 +41,7 @@ class adminAdministratorController extends Controller
         return response()->json([
             'success'    => true,
             'data'    => $items,
+            'id' => $user->id
         ], 200);
     }
 
@@ -56,7 +57,7 @@ class adminAdministratorController extends Controller
 
         //set validation
         $validator = Validator::make($request->all(), [
-            'name'   => 'required',
+            'nama'   => 'required',
         ]);
         //response error validation
         if ($validator->fails()) {
@@ -65,23 +66,42 @@ class adminAdministratorController extends Controller
 
         User::where('id', $item->id)
             ->update([
-                'name' => $request->name,
+                'nama' => $request->nama,
                 'email' => $request->email,
                 'username' => $request->username,
                 'nomeridentitas' => $request->nomeridentitas,
-                'password' => Hash::make($request->password),
+                // 'password' => Hash::make($request->password),
                 'updated_at' => date("Y-m-d H:i:s")
             ]);
+
+        // update password
+        if ($request->password) {
+            User::where('id', $item->id)
+                ->update([
+                    'password' => Hash::make($request->password),
+                    'updated_at' => date("Y-m-d H:i:s")
+                ]);
+        }
 
         return response()->json([
             'success'    => true,
             'message'    => 'Data berhasil di update!',
+            'id' => $item->id
         ], 200);
     }
     public function destroy(User $item)
     {
 
         User::destroy($item->id);
+        return response()->json([
+            'success'    => true,
+            'message'    => 'Data berhasil di hapus!',
+        ], 200);
+    }
+    public function destroyForce($item)
+    {
+
+        User::where('id', $item)->forcedelete();
         return response()->json([
             'success'    => true,
             'message'    => 'Data berhasil di hapus!',

@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\admin\adminKategoriController;
 use App\Http\Controllers\admin\adminProsesController;
 use App\Http\Controllers\AuthController;
 use Illuminate\Support\Facades\Route;
@@ -13,13 +14,16 @@ Route::post("admin/auth/login", [AuthController::class, 'login']);
 Route::middleware('auth:api')->group(
     function () {
         Route::get("admin/auth/me", [AuthController::class, 'me']);
+        // get My Data and New Token
         Route::post("admin/auth/profile", [AuthController::class, 'refresh']);
+        // update
+        Route::put("admin/auth/profile", [AuthController::class, 'update']);
 
-        // Route::get('/admin/klasifikasi', [adminKlasifikasiAkademisController::class, 'index']);
-        // Route::post('/admin/klasifikasi', [adminKlasifikasiAkademisController::class, 'store']);
-        // Route::get('/admin/klasifikasi/{item}', [adminKlasifikasiAkademisController::class, 'edit']);
-        // Route::put('/admin/klasifikasi/{item}', [adminKlasifikasiAkademisController::class, 'update']);
-        // Route::delete('/admin/klasifikasi/{item}', [adminKlasifikasiAkademisController::class, 'destroy']);
+        Route::get('/admin/kategori', [adminKategoriController::class, 'index']);
+        Route::post('/admin/kategori', [adminKategoriController::class, 'store']);
+        Route::get('/admin/kategori/{item}', [adminKategoriController::class, 'edit']);
+        Route::put('/admin/kategori/{item}', [adminKategoriController::class, 'update']);
+        Route::delete('/admin/kategori/{item}', [adminKategoriController::class, 'destroy']);
 
 
         Route::post('/admin/proses/cleartemp ', [adminProsesController::class, 'clearTemp']);

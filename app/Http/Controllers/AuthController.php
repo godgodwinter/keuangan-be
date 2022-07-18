@@ -140,4 +140,30 @@ class AuthController extends Controller
     {
         return Auth::guard();
     }
+
+
+    public function update(Request $request)
+    {
+        $request->validate([
+            'nama' => 'required|string|max:255',
+            // 'email' => 'required|string|email|max:255|unique:users',
+            // 'password' => 'required|string',
+        ]);
+
+
+        $user = User::find(Auth::user()->id);
+        $user->nama = $request->nama;
+        $user->save();
+
+        if ($request->password) {
+            //update password
+            $user = User::find(Auth::user()->id);
+            $user->password = Hash::make($request->password);
+            $user->save();
+        }
+        return response()->json([
+            'status' => 'success',
+            'message' => 'Data berhasil di update',
+        ]);
+    }
 }

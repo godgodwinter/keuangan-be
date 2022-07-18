@@ -18,6 +18,11 @@ class adminTransaksiController extends Controller
             ->where('users_id', Auth::guard()->user()->id)
             ->get();
         $data = [];
+        $dataRekap = (object)[
+            'pemasukan' => 0,
+            'pengeluaran' => 0,
+            'saldo' => 0,
+        ];
         foreach ($items as $item) {
             $tempData = (object)[];
             $tempData->id = $item->id;
@@ -32,10 +37,17 @@ class adminTransaksiController extends Controller
             $tempData->created_at = $item->created_at;
             $tempData->updated_at = $item->updated_at;
             $data[] = $tempData;
+            if ($item->jenis == 'Pemasukan') {
+                $dataRekap->pemasukan += $item->nominal;
+            } else {
+                $dataRekap->pengeluaran += $item->nominal;
+            }
         }
+        $dataRekap->saldo = $dataRekap->pemasukan - $dataRekap->pengeluaran;
         return response()->json([
             'success'    => true,
             'data'    => $data,
+            'dataRekap'    => $dataRekap,
         ], 200);
     }
 

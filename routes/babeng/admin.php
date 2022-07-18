@@ -3,6 +3,7 @@
 use App\Http\Controllers\admin\adminAdministratorController;
 use App\Http\Controllers\admin\adminKategoriController;
 use App\Http\Controllers\admin\adminProsesController;
+use App\Http\Controllers\admin\adminTransaksiController;
 use App\Http\Controllers\AuthController;
 use Illuminate\Support\Facades\Route;
 
@@ -32,6 +33,14 @@ Route::middleware('auth:api')->group(
         Route::put('/admin/users/{item}', [adminAdministratorController::class, 'update']);
         Route::delete('/admin/users/{item}', [adminAdministratorController::class, 'destroy']);
         Route::delete('/admin/users/{item}/force', [adminAdministratorController::class, 'destroyForce']);
+
+
+        Route::get('/admin/transaksi', [adminTransaksiController::class, 'index']);
+        Route::post('/admin/transaksi', [adminTransaksiController::class, 'store']);
+        Route::get('/admin/transaksi/{item}', [adminTransaksiController::class, 'edit']);
+        Route::put('/admin/transaksi/{item}', [adminTransaksiController::class, 'update']);
+        Route::delete('/admin/transaksi/{item}', [adminTransaksiController::class, 'destroy']);
+        Route::delete('/admin/transaksi/{item}/force', [adminTransaksiController::class, 'destroyForce']);
 
 
         Route::post('/admin/proses/cleartemp ', [adminProsesController::class, 'clearTemp']);

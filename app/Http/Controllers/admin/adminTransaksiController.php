@@ -45,7 +45,7 @@ class adminTransaksiController extends Controller
         $validator = Validator::make($request->all(), [
             'tgl'   => 'required',
             'nama'   => 'required',
-            // 'desc'   => 'required',
+            // 'desc'   => 'required', //keterangan
             'jenis'   => 'required',
             'nominal'   => 'required',
             'kategori_id'   => 'required',
@@ -59,7 +59,7 @@ class adminTransaksiController extends Controller
             array(
                 'tgl'     =>   $request->tgl,
                 'nama'     =>   $request->nama,
-                // 'desc'     =>   $request->desc,
+                'desc'     =>   $request->desc,
                 'jenis'     =>   $request->jenis,
                 'nominal'     =>   $request->nominal,
                 'kategori_id'     =>   $request->kategori_id,
@@ -108,7 +108,7 @@ class adminTransaksiController extends Controller
             ->update([
                 'tgl'     =>   $request->tgl,
                 'nama'     =>   $request->nama,
-                // 'desc'     =>   $request->desc,
+                'desc'     =>   $request->desc,
                 'jenis'     =>   $request->jenis,
                 'nominal'     =>   $request->nominal,
                 'kategori_id'     =>   $request->kategori_id,

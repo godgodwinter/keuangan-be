@@ -153,6 +153,8 @@ class AuthController extends Controller
 
         $user = User::find(Auth::user()->id);
         $user->nama = $request->nama;
+        $user->username = $request->username;
+        $user->email = $request->email;
         $user->save();
 
         if ($request->password) {

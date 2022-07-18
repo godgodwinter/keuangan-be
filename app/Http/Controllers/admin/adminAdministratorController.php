@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\admin;
 
 use App\Http\Controllers\Controller;
+use App\Models\transaksi;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
@@ -12,10 +13,23 @@ class adminAdministratorController extends Controller
 {
     public function index(Request $request)
     {
+        $data = [];
         $items = User::get();
+        foreach ($items as $item) {
+            $tempData = (object)[];
+            $tempData->id = $item->id;
+            $tempData->nama = $item->nama;
+            $tempData->email = $item->email;
+            $tempData->username = $item->username;
+            $jmlTrans = transaksi::where('users_id', $item->id)->count();
+            $tempData->transaksi = $jmlTrans;
+            $tempData->created_at = $item->created_at;
+            $tempData->updated_at = $item->updated_at;
+            $data[] = $tempData;
+        }
         return response()->json([
             'success'    => true,
-            'data'    => $items,
+            'data'    => $data,
         ], 200);
     }
 

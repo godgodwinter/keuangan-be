@@ -12,7 +12,7 @@ class adminKategoriController extends Controller
 {
     public function index(Request $request)
     {
-        $items = kategori::get();
+        $items = kategori::orderBy('nama', 'asc')->get();
         return response()->json([
             'success'    => true,
             'data'    => $items,

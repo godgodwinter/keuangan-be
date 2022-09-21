@@ -51,6 +51,53 @@ class adminTransaksiController extends Controller
         ], 200);
     }
 
+    public function rekap(Request $request)
+    {
+        // request month, year
+        $month = $request->month ? $request->month : date('m');
+        $yaer = $request->yaer ? $request->yaer : date('Y');
+        $items = transaksi::with('kategori')
+            ->with('users')
+            ->where('users_id', Auth::guard()->user()->id)
+            ->whereMonth("tgl", $month)
+            ->whereYear("tgl", $yaer)
+            ->get();
+        // dd($month, $yaer, $items);
+        $data = [];
+        $dataRekap = (object)[
+            'pemasukan' => 0,
+            'pengeluaran' => 0,
+            'saldo' => 0,
+        ];
+
+        foreach ($items as $item) {
+            $tempData = (object)[];
+            $tempData->id = $item->id;
+            $tempData->users_id = $item->users_id;
+            $tempData->users_nama = $item->users ? $item->users->nama : null;
+            $tempData->kategori_id = $item->kategori_id;
+            $tempData->kategori_nama = $item->kategori ? $item->kategori->nama : null;
+            $tempData->tgl = $item->tgl;
+            $tempData->nama = $item->nama;
+            $tempData->jenis = $item->jenis;
+            $tempData->nominal = $item->nominal;
+            $tempData->created_at = $item->created_at;
+            $tempData->updated_at = $item->updated_at;
+            $data[] = $tempData;
+            if ($item->jenis == 'Pemasukan') {
+                $dataRekap->pemasukan += $item->nominal;
+            } else {
+                $dataRekap->pengeluaran += $item->nominal;
+            }
+        }
+        $dataRekap->saldo = $dataRekap->pemasukan - $dataRekap->pengeluaran;
+        return response()->json([
+            'success'    => true,
+            'data'    => $data,
+            'dataRekap'    => $dataRekap,
+        ], 200);
+    }
+
     public function store(Request $request)
     {
         //set validation

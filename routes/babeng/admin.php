@@ -43,6 +43,9 @@ Route::middleware('auth:api')->group(
         Route::delete('/admin/transaksi/{item}/force', [adminTransaksiController::class, 'destroyForce']);
 
 
+        Route::get('/admin/rekap', [adminTransaksiController::class, 'rekap']); //inputan:month + year
+
+
         Route::post('/admin/proses/cleartemp ', [adminProsesController::class, 'clearTemp']);
     }
 );

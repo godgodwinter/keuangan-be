@@ -49,3 +49,4 @@ Route::middleware('auth:api')->group(
         Route::post('/admin/proses/cleartemp ', [adminProsesController::class, 'clearTemp']);
     }
 );
+Route::get('/admin/rekap/kategori/{kategori}', [adminTransaksiController::class, 'rekap_perkategori']); //inputan:month + year

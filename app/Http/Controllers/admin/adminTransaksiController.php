@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\admin;
 
 use App\Http\Controllers\Controller;
+use App\Models\kategori;
 use App\Models\transaksi;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -89,6 +90,58 @@ class adminTransaksiController extends Controller
             } else {
                 $dataRekap->pengeluaran += $item->nominal;
             }
+        }
+        $dataRekap->saldo = $dataRekap->pemasukan - $dataRekap->pengeluaran;
+        return response()->json([
+            'success'    => true,
+            'data'    => $data,
+            'dataRekap'    => $dataRekap,
+        ], 200);
+    }
+    public function rekap_perkategori(kategori $kategori, Request $request)
+    {
+        // request month, year
+        $month = $request->month ? $request->month : date('m');
+        $yaer = $request->yaer ? $request->yaer : date('Y');
+        $items = transaksi::with('kategori')
+            ->with('users')
+            ->where('users_id', Auth::guard()->user()->id)
+            ->whereMonth("tgl", $month)
+            ->whereYear("tgl", $yaer)
+            ->where('kategori_id', $kategori->id)
+            ->get();
+        // dd($month, $yaer, $items);
+        $data = [];
+        $dataRekap = (object)[
+            'pemasukan' => 0,
+            'pengeluaran' => 0,
+            'saldo' => 0,
+            'total' => 0,
+            'nama' => "-",
+        ];
+
+        foreach ($items as $item) {
+            $tempData = (object)[];
+            $tempData->id = $item->id;
+            $tempData->users_id = $item->users_id;
+            $tempData->users_nama = $item->users ? $item->users->nama : null;
+            $tempData->kategori_id = $item->kategori_id;
+            $tempData->kategori_nama = $item->kategori ? $item->kategori->nama : null;
+            $tempData->tgl = $item->tgl;
+            $tempData->nama = $item->nama;
+            $tempData->jenis = $item->jenis;
+            $tempData->nominal = $item->nominal;
+            $tempData->created_at = $item->created_at;
+            $tempData->updated_at = $item->updated_at;
+            $data[] = $tempData;
+            if ($item->jenis == 'Pemasukan') {
+                $dataRekap->pemasukan += $item->nominal;
+                $dataRekap->total += $item->nominal;
+            } else {
+                $dataRekap->pengeluaran += $item->nominal;
+                $dataRekap->total += $item->nominal;
+            }
+            $dataRekap->nama = $kategori->nama;
         }
         $dataRekap->saldo = $dataRekap->pemasukan - $dataRekap->pengeluaran;
         return response()->json([

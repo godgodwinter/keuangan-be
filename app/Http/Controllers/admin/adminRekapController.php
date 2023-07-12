@@ -114,7 +114,7 @@ class adminRekapController extends Controller
 
                     $dataKategori[] = [
                         'nama' => $kategori->nama,
-                        'total' => $pengeluaran,
+                        'nominal' => $pengeluaran,
                         'persentase' => number_format($persentasePengeluaran, 2),
                     ];
                 }
@@ -146,7 +146,7 @@ class adminRekapController extends Controller
 
                     $dataKategori[] = [
                         'nama' => $kategori->nama,
-                        'total' => $Pemasukan,
+                        'nominal' => $Pemasukan,
                         'persentase' => number_format($persentasePemasukan, 2),
                     ];
                 }

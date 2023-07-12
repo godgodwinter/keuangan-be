@@ -17,7 +17,7 @@ class adminRekapController extends Controller
     {
         // request month, year
         $month = $request->month ? $request->month : date('m');
-        $year = $request->yaer ? $request->yaer : date('Y');
+        $year = $request->year ? $request->year : date('Y');
 
 
         // Ambil data pemasukan
@@ -73,7 +73,7 @@ class adminRekapController extends Controller
     {
         // request month, year
         $month = $request->month ? $request->month : date('m');
-        $year = $request->yaer ? $request->yaer : date('Y');
+        $year = $request->year ? $request->year : date('Y');
         $tipe = $request->tipe ? $request->tipe : "pengeluaran";
         $dataKategori = [];
         if ($tipe == "pengeluaran") {
@@ -157,10 +157,9 @@ class adminRekapController extends Controller
     public function pertahun_ringkasan(Request $request)
     {
         // request month, year
-        $month = $request->month ? $request->month : date('m');
-        $year = $request->yaer ? $request->yaer : date('Y');
+        $year = $request->year ? $request->year : date('Y');
 
-
+        // dd('aa');
         // Ambil data pemasukan
         $pemasukan = transaksi::where('jenis', 'pemasukan')
             // ->whereMonth('tgl', $month)
@@ -213,9 +212,9 @@ class adminRekapController extends Controller
     public function pertahun_rekap_kategori(Request $request)
     {
         // request month, year
-        $month = $request->month ? $request->month : date('m');
-        $year = $request->yaer ? $request->yaer : date('Y');
+        $year = $request->year ? $request->year : date('Y');
         $tipe = $request->tipe ? $request->tipe : "pengeluaran";
+        // dd($year);
         $dataKategori = [];
         if ($tipe == "pengeluaran") {
             // Ambil data pengeluaran per kategori

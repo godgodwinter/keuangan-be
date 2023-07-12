@@ -49,6 +49,8 @@ Route::middleware('auth:api')->group(
         // !baru
         Route::get('/admin/datatransaksi/ringkasan', [adminRekapController::class, 'ringkasan']);
         Route::get('/admin/datatransaksi/ringkasan/kategori', [adminRekapController::class, 'rekap_kategori']);
+        Route::get('/admin/datatransaksi_pertahun/ringkasan', [adminRekapController::class, 'pertahun_ringkasan']);
+        Route::get('/admin/datatransaksi_pertahun/ringkasan/kategori', [adminRekapController::class, 'pertahun_rekap_kategori']);
         // !baru
 
 

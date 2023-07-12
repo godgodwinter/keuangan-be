@@ -3,6 +3,7 @@
 use App\Http\Controllers\admin\adminAdministratorController;
 use App\Http\Controllers\admin\adminKategoriController;
 use App\Http\Controllers\admin\adminProsesController;
+use App\Http\Controllers\admin\adminRekapController;
 use App\Http\Controllers\admin\adminTransaksiController;
 use App\Http\Controllers\AuthController;
 use Illuminate\Support\Facades\Route;
@@ -27,6 +28,9 @@ Route::middleware('auth:api')->group(
         Route::put('/admin/kategori/{item}', [adminKategoriController::class, 'update']);
         Route::delete('/admin/kategori/{item}', [adminKategoriController::class, 'destroy']);
 
+
+
+
         Route::get('/admin/users', [adminAdministratorController::class, 'index']);
         Route::post('/admin/users', [adminAdministratorController::class, 'store']);
         Route::get('/admin/users/{item}', [adminAdministratorController::class, 'edit']);
@@ -41,6 +45,11 @@ Route::middleware('auth:api')->group(
         Route::put('/admin/transaksi/{item}', [adminTransaksiController::class, 'update']);
         Route::delete('/admin/transaksi/{item}', [adminTransaksiController::class, 'destroy']);
         Route::delete('/admin/transaksi/{item}/force', [adminTransaksiController::class, 'destroyForce']);
+
+        // !baru
+        Route::get('/admin/datatransaksi/ringkasan', [adminRekapController::class, 'ringkasan']);
+        Route::get('/admin/datatransaksi/ringkasan/kategori', [adminRekapController::class, 'rekap_kategori']);
+        // !baru
 
 
         Route::get('/admin/rekap', [adminTransaksiController::class, 'rekap']); //inputan:month + year

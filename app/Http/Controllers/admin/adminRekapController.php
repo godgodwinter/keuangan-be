@@ -317,44 +317,53 @@ class adminRekapController extends Controller
             ->orderBy('tgl', 'desc')
             ->get();
 
+        // Inisialisasi array hasil
+        $hasil = [];
+        $nomer_trans = 0;
         // Looping data transaksi
         foreach ($transaksi as $item) {
-            $tgl = date('d', strtotime($item->tgl));
+            $tgl = date('Y-m-d', strtotime($item->tgl));
 
             // Cek apakah tanggal sudah ada dalam hasil
-            if (!array_key_exists($tgl, $data)) {
-                // Inisialisasi data tanggal pada data
-                $data[$tgl] = [
-                    'tanggal' => $year . '-' . $month . '-' . $tgl,
+            if (!array_key_exists($tgl, $hasil)) {
+                $nomer_trans++;
+                // Inisialisasi data tanggal pada hasil
+                $hasil[$tgl] = [
+                    'id' => $nomer_trans, // Menggunakan tanggal sebagai ID
+                    'nama' => $tgl,
                     'pemasukan' => 0,
                     'pengeluaran' => 0,
+                    'saldo' => 0,
+                    'jml_transaksi' => 0,
                     'detail' => []
                 ];
             }
 
             // Tambahkan transaksi ke detail
-            $data[$tgl]['detail'][] = $item;
+            $hasil[$tgl]['detail'][] = $item;
 
             // Update total pemasukan atau pengeluaran
             if ($item->jenis === 'Pemasukan') {
-                $data[$tgl]['pemasukan'] += $item->nominal;
+                $hasil[$tgl]['pemasukan'] += $item->nominal;
                 $totalPemasukan += $item->nominal;
             } else {
-                $data[$tgl]['pengeluaran'] += $item->nominal;
+                $hasil[$tgl]['pengeluaran'] += $item->nominal;
                 $totalPengeluaran += $item->nominal;
             }
+
+            // Update jumlah transaksi
+            $hasil[$tgl]['jml_transaksi']++;
         }
 
         // Hitung saldo
-        $saldo = $totalPemasukan - $totalPengeluaran;
-
-        // Inisialisasi rekap
         $rekap = [
             'pemasukan' => $totalPemasukan,
             'pengeluaran' => $totalPengeluaran,
-            'saldo' => $saldo
+            'saldo' => $totalPemasukan - $totalPengeluaran
         ];
 
+        // Ubah bentuk hasil menjadi array objek
+        $data = array_values($hasil);
 
         return response()->json([
             'success'    => true,
@@ -363,7 +372,6 @@ class adminRekapController extends Controller
             // 'dataRekap'    => $dataRekap,
         ], 200);
     }
-
 
     public function transaksi_detail_bulanan(Request $request)
     {
@@ -388,6 +396,9 @@ class adminRekapController extends Controller
             12 => 'Desember'
         ];
 
+        // Inisialisasi total pemasukan dan pengeluaran
+        $totalPemasukan = 0;
+        $totalPengeluaran = 0;
 
         // Looping bulan
         foreach ($bulan as $id => $namaBulan) {
@@ -404,73 +415,46 @@ class adminRekapController extends Controller
                 ->get();
 
             // Inisialisasi total pemasukan dan pengeluaran
-            $totalPemasukan = 0;
-            $totalPengeluaran = 0;
+            $totalPemasukanBulan = 0;
+            $totalPengeluaranBulan = 0;
             $jmlTransaksi = $transaksiBulan->count(); // Menghitung jumlah transaksi
-
 
             // Looping data transaksi
             foreach ($transaksiBulan as $item) {
                 if ($item->jenis === 'Pemasukan') {
-                    $totalPemasukan += $item->nominal;
+                    $totalPemasukanBulan += $item->nominal;
                 } else {
-                    $totalPengeluaran += $item->nominal;
+                    $totalPengeluaranBulan += $item->nominal;
                 }
             }
 
             // Hitung saldo
-            $saldo = $totalPemasukan - $totalPengeluaran;
+            $saldoBulan = $totalPemasukanBulan - $totalPengeluaranBulan;
+
             // Tambahkan data bulan ke hasil
             $data[] = [
                 'id' => $id,
                 'nama' => $namaBulan,
-                'pemasukan' => $totalPemasukan,
-                'pengeluaran' => $totalPengeluaran,
-                'saldo' => $saldo,
+                'pemasukan' => $totalPemasukanBulan,
+                'pengeluaran' => $totalPengeluaranBulan,
+                'saldo' => $saldoBulan,
                 'jml_transaksi' => $jmlTransaksi
             ];
+
+            // Update total pemasukan dan pengeluaran secara keseluruhan
+            $totalPemasukan += $totalPemasukanBulan;
+            $totalPengeluaran += $totalPengeluaranBulan;
         }
 
+        // Hitung saldo
+        $saldo = $totalPemasukan - $totalPengeluaran;
 
-
-        // //! Jika tahun ini tidak sama dengan tahun saat ini, tampilkan semua bulan
-        // if ($year != date('Y')) {
-        //     foreach ($bulan as $id => $namaBulan) {
-        //         // Ambil data transaksi per bulan
-        //         $transaksiBulan = DB::table('transaksi')
-        //             ->select('tgl', 'nama', 'jenis', 'nominal')
-        //             ->whereMonth('tgl', $id)
-        //             ->whereYear('tgl', $year)
-        //             ->whereNull('deleted_at')
-        //             ->get();
-
-        //         // Inisialisasi total pemasukan dan pengeluaran
-        //         $totalPemasukan = 0;
-        //         $totalPengeluaran = 0;
-
-        //         // Looping data transaksi
-        //         foreach ($transaksiBulan as $item) {
-        //             if ($item->jenis === 'pemasukan') {
-        //                 $totalPemasukan += $item->nominal;
-        //             } else {
-        //                 $totalPengeluaran += $item->nominal;
-        //             }
-        //         }
-
-        //         // Hitung saldo
-        //         $saldo = $totalPemasukan - $totalPengeluaran;
-
-        //         // Tambahkan data bulan ke hasil
-        //         $data[] = [
-        //             'id' => $id,
-        //             'nama' => $namaBulan,
-        //             'pemasukan' => $totalPemasukan,
-        //             'pengeluaran' => $totalPengeluaran,
-        //             'saldo' => $saldo
-        //         ];
-        //     }
-        // }
-
+        // Buat array rekap
+        $rekap = [
+            'pemasukan' => $totalPemasukan,
+            'pengeluaran' => $totalPengeluaran,
+            'saldo' => $saldo
+        ];
 
         // Urutkan hasil secara descending berdasarkan ID bulan
         usort($data, function ($a, $b) {
@@ -478,12 +462,11 @@ class adminRekapController extends Controller
         });
 
         return response()->json([
-            'success'    => true,
-            'data'    => $data,
-            // 'dataRekap'    => $dataRekap,
+            'success' => true,
+            'data' => $data,
+            'rekap' => $rekap,
         ], 200);
     }
-
     public function transaksi_detail_tahunan(Request $request)
     {
         $hasil = [];
@@ -500,6 +483,10 @@ class adminRekapController extends Controller
             ->whereNull('deleted_at')
             ->groupBy('tahun', 'jenis')
             ->get();
+
+        // Inisialisasi total pemasukan dan pengeluaran
+        $totalPemasukan = 0;
+        $totalPengeluaran = 0;
 
         // Looping data transaksi per tahun
         $index = 1; // Inisialisasi index
@@ -521,22 +508,32 @@ class adminRekapController extends Controller
             }
 
             // Update total pemasukan, pengeluaran, saldo, dan jumlah transaksi
-            if ($item->jenis === 'pemasukan') {
+            if ($item->jenis === 'Pemasukan') {
                 $hasil[$tahun]['pemasukan'] += $item->total_nominal;
+                $totalPemasukan += $item->total_nominal;
             } else {
                 $hasil[$tahun]['pengeluaran'] += $item->total_nominal;
+                $totalPengeluaran += $item->total_nominal;
             }
 
             $hasil[$tahun]['saldo'] = $hasil[$tahun]['pemasukan'] - $hasil[$tahun]['pengeluaran'];
             $hasil[$tahun]['jml_transaksi'] += $item->jml_transaksi;
         }
 
+        // Hitung saldo
+        $rekap = [
+            'pemasukan' => $totalPemasukan,
+            'pengeluaran' => $totalPengeluaran,
+            'saldo' => $totalPemasukan - $totalPengeluaran
+        ];
+
         // Urutkan hasil berdasarkan tahun secara menurun
         krsort($hasil);
 
         return response()->json([
-            'success'    => true,
-            'data' => array_values($hasil) // Mengambil nilai-nilai objek hasil sebagai array
+            'success' => true,
+            'data' => array_values($hasil), // Mengambil nilai-nilai objek hasil sebagai array
+            'rekap' => $rekap
         ], 200);
     }
 }

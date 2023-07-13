@@ -406,6 +406,8 @@ class adminRekapController extends Controller
             // Inisialisasi total pemasukan dan pengeluaran
             $totalPemasukan = 0;
             $totalPengeluaran = 0;
+            $jmlTransaksi = $transaksiBulan->count(); // Menghitung jumlah transaksi
+
 
             // Looping data transaksi
             foreach ($transaksiBulan as $item) {
@@ -424,7 +426,8 @@ class adminRekapController extends Controller
                 'nama' => $namaBulan,
                 'pemasukan' => $totalPemasukan,
                 'pengeluaran' => $totalPengeluaran,
-                'saldo' => $saldo
+                'saldo' => $saldo,
+                'jml_transaksi' => $jmlTransaksi
             ];
         }
 

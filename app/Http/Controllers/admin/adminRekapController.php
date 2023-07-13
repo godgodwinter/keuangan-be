@@ -292,4 +292,56 @@ class adminRekapController extends Controller
             // 'dataRekap'    => $dataRekap,
         ], 200);
     }
+
+
+    public function transaksi_detail(Request $request)
+    {
+        // request month, year
+        $month = $request->month ? $request->month : date('m');
+        $year = $request->year ? $request->year : date('Y');
+        $data = [];
+
+        // Ambil tanggal sekarang
+        $tanggalSekarang = date('Y-m-d');
+
+        // Ambil data transaksi berdasarkan bulan dan tahun ini
+        $transaksi = DB::table('transaksi')
+            ->select('*')
+            ->whereMonth('tgl', $month)
+            ->whereYear('tgl', $year)
+            ->where('tgl', '<=', $tanggalSekarang)
+            ->orderBy('tgl', 'desc')
+            ->get();
+
+        // Looping data transaksi
+        foreach ($transaksi as $item) {
+            $tgl = date('d', strtotime($item->tgl));
+
+            // Cek apakah tanggal sudah ada dalam hasil
+            if (!array_key_exists($tgl, $data)) {
+                // Inisialisasi data tanggal pada data
+                $data[$tgl] = [
+                    'tanggal' => $year . '-' . $month . '-' . $tgl,
+                    'pemasukan' => 0,
+                    'pengeluaran' => 0,
+                    'detail' => []
+                ];
+            }
+
+            // Tambahkan transaksi ke detail
+            $data[$tgl]['detail'][] = $item;
+
+            // Update total pemasukan atau pengeluaran
+            if ($item->jenis === 'Pemasukan') {
+                $data[$tgl]['pemasukan'] += $item->nominal;
+            } else {
+                $data[$tgl]['pengeluaran'] += $item->nominal;
+            }
+        }
+        return response()->json([
+            'success'    => true,
+            'data'    => $data,
+            // 'dataRekap'    => $dataRekap,
+        ], 200);
+    }
 }

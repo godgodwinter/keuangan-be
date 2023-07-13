@@ -300,6 +300,9 @@ class adminRekapController extends Controller
         $month = $request->month ? $request->month : date('m');
         $year = $request->year ? $request->year : date('Y');
         $data = [];
+        // Inisialisasi total pemasukan dan pengeluaran
+        $totalPemasukan = 0;
+        $totalPengeluaran = 0;
 
         // Ambil tanggal sekarang
         $tanggalSekarang = date('Y-m-d');
@@ -310,6 +313,7 @@ class adminRekapController extends Controller
             ->whereMonth('tgl', $month)
             ->whereYear('tgl', $year)
             ->where('tgl', '<=', $tanggalSekarang)
+            ->whereNull('deleted_at')
             ->orderBy('tgl', 'desc')
             ->get();
 
@@ -334,14 +338,202 @@ class adminRekapController extends Controller
             // Update total pemasukan atau pengeluaran
             if ($item->jenis === 'Pemasukan') {
                 $data[$tgl]['pemasukan'] += $item->nominal;
+                $totalPemasukan += $item->nominal;
             } else {
                 $data[$tgl]['pengeluaran'] += $item->nominal;
+                $totalPengeluaran += $item->nominal;
             }
         }
+
+        // Hitung saldo
+        $saldo = $totalPemasukan - $totalPengeluaran;
+
+        // Inisialisasi rekap
+        $rekap = [
+            'pemasukan' => $totalPemasukan,
+            'pengeluaran' => $totalPengeluaran,
+            'saldo' => $saldo
+        ];
+
+
+        return response()->json([
+            'success'    => true,
+            'data'    => $data,
+            'rekap' => $rekap
+            // 'dataRekap'    => $dataRekap,
+        ], 200);
+    }
+
+
+    public function transaksi_detail_bulanan(Request $request)
+    {
+        // request month, year
+        $year = $request->year ? $request->year : date('Y');
+        $data = [];
+        // Ambil bulan ini
+        $bulanIni = date('m');
+        // Inisialisasi array bulan
+        $bulan = [
+            1 => 'Januari',
+            2 => 'Februari',
+            3 => 'Maret',
+            4 => 'April',
+            5 => 'Mei',
+            6 => 'Juni',
+            7 => 'Juli',
+            8 => 'Agustus',
+            9 => 'September',
+            10 => 'Oktober',
+            11 => 'November',
+            12 => 'Desember'
+        ];
+
+
+        // Looping bulan
+        foreach ($bulan as $id => $namaBulan) {
+            // Hanya proses bulan sebelum atau pada bulan ini
+            if ($year == date('Y') && $id > $bulanIni) {
+                break;
+            }
+            // Ambil data transaksi per bulan
+            $transaksiBulan = DB::table('transaksi')
+                ->select('tgl', 'nama', 'jenis', 'nominal')
+                ->whereMonth('tgl', $id)
+                ->whereYear('tgl', $year)
+                ->whereNull('deleted_at')
+                ->get();
+
+            // Inisialisasi total pemasukan dan pengeluaran
+            $totalPemasukan = 0;
+            $totalPengeluaran = 0;
+
+            // Looping data transaksi
+            foreach ($transaksiBulan as $item) {
+                if ($item->jenis === 'Pemasukan') {
+                    $totalPemasukan += $item->nominal;
+                } else {
+                    $totalPengeluaran += $item->nominal;
+                }
+            }
+
+            // Hitung saldo
+            $saldo = $totalPemasukan - $totalPengeluaran;
+            // Tambahkan data bulan ke hasil
+            $data[] = [
+                'id' => $id,
+                'nama' => $namaBulan,
+                'pemasukan' => $totalPemasukan,
+                'pengeluaran' => $totalPengeluaran,
+                'saldo' => $saldo
+            ];
+        }
+
+
+
+        // //! Jika tahun ini tidak sama dengan tahun saat ini, tampilkan semua bulan
+        // if ($year != date('Y')) {
+        //     foreach ($bulan as $id => $namaBulan) {
+        //         // Ambil data transaksi per bulan
+        //         $transaksiBulan = DB::table('transaksi')
+        //             ->select('tgl', 'nama', 'jenis', 'nominal')
+        //             ->whereMonth('tgl', $id)
+        //             ->whereYear('tgl', $year)
+        //             ->whereNull('deleted_at')
+        //             ->get();
+
+        //         // Inisialisasi total pemasukan dan pengeluaran
+        //         $totalPemasukan = 0;
+        //         $totalPengeluaran = 0;
+
+        //         // Looping data transaksi
+        //         foreach ($transaksiBulan as $item) {
+        //             if ($item->jenis === 'pemasukan') {
+        //                 $totalPemasukan += $item->nominal;
+        //             } else {
+        //                 $totalPengeluaran += $item->nominal;
+        //             }
+        //         }
+
+        //         // Hitung saldo
+        //         $saldo = $totalPemasukan - $totalPengeluaran;
+
+        //         // Tambahkan data bulan ke hasil
+        //         $data[] = [
+        //             'id' => $id,
+        //             'nama' => $namaBulan,
+        //             'pemasukan' => $totalPemasukan,
+        //             'pengeluaran' => $totalPengeluaran,
+        //             'saldo' => $saldo
+        //         ];
+        //     }
+        // }
+
+
+        // Urutkan hasil secara descending berdasarkan ID bulan
+        usort($data, function ($a, $b) {
+            return $b['id'] - $a['id'];
+        });
+
         return response()->json([
             'success'    => true,
             'data'    => $data,
             // 'dataRekap'    => $dataRekap,
+        ], 200);
+    }
+
+    public function transaksi_detail_tahunan(Request $request)
+    {
+        $hasil = [];
+        // Ambil tahun ini
+        $tahunIni = date('Y');
+
+        // Inisialisasi array hasil
+        $hasil = [];
+
+        // Ambil data transaksi per tahun
+        $transaksiTahun = DB::table('transaksi')
+            ->select(DB::raw('YEAR(tgl) as tahun'), 'jenis', DB::raw('SUM(nominal) as total_nominal'), DB::raw('COUNT(*) as jml_transaksi'))
+            ->whereYear('tgl', '<=', $tahunIni)
+            ->whereNull('deleted_at')
+            ->groupBy('tahun', 'jenis')
+            ->get();
+
+        // Looping data transaksi per tahun
+        $index = 1; // Inisialisasi index
+        foreach ($transaksiTahun as $item) {
+            $tahun = $item->tahun;
+
+            // Cek apakah tahun sudah ada dalam hasil
+            if (!array_key_exists($tahun, $hasil)) {
+                // Inisialisasi data tahun pada hasil
+                $hasil[$tahun] = [
+                    'id' => $index, // Contoh mengambil 2 digit terakhir dari tahun sebagai ID
+                    'nama' => $tahun,
+                    'pemasukan' => 0,
+                    'pengeluaran' => 0,
+                    'saldo' => 0,
+                    'jml_transaksi' => 0
+                ];
+                $index++; // Increment index
+            }
+
+            // Update total pemasukan, pengeluaran, saldo, dan jumlah transaksi
+            if ($item->jenis === 'pemasukan') {
+                $hasil[$tahun]['pemasukan'] += $item->total_nominal;
+            } else {
+                $hasil[$tahun]['pengeluaran'] += $item->total_nominal;
+            }
+
+            $hasil[$tahun]['saldo'] = $hasil[$tahun]['pemasukan'] - $hasil[$tahun]['pengeluaran'];
+            $hasil[$tahun]['jml_transaksi'] += $item->jml_transaksi;
+        }
+
+        // Urutkan hasil berdasarkan tahun secara menurun
+        krsort($hasil);
+
+        return response()->json([
+            'success'    => true,
+            'data' => array_values($hasil) // Mengambil nilai-nilai objek hasil sebagai array
         ], 200);
     }
 }

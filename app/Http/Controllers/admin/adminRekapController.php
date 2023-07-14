@@ -180,6 +180,7 @@ class adminRekapController extends Controller
         // Inisialisasi variabel rekap
         $jml_tgl = 0;
         $jml_trans = 0;
+        $total_nominal = 0;
 
         // Looping data transaksi
         foreach ($transaksi as $item) {
@@ -200,6 +201,7 @@ class adminRekapController extends Controller
                 $hasil[] = [
                     'id' => $tglIndex + 1,
                     'nama' => $tgl,
+                    'total_nominal' => 0, // Inisialisasi total_nominal per tanggal
                     'detail' => []
                 ];
                 $jml_tgl++; // Tambahkan jumlah tanggal
@@ -209,6 +211,8 @@ class adminRekapController extends Controller
             $item->kategori_nama = $item->kategori_nama; // Tambahkan kategori_nama
             $hasil[$tglIndex]['detail'][] = $item;
             $jml_trans++; // Tambahkan jumlah transaksi
+            $hasil[$tglIndex]['total_nominal'] += $item->nominal; // Tambahkan nominal transaksi ke total_nominal per tanggal
+            $total_nominal += $item->nominal; // Tambahkan nominal transaksi ke total_nominal keseluruhan
         }
 
         // Buat array rekap
@@ -216,6 +220,7 @@ class adminRekapController extends Controller
             'jml_tgl' => $jml_tgl,
             'jml_transaksi' => $jml_trans,
             'kategori_nama' => $kategori_id->nama,
+            'total_nominal' => $total_nominal, // Total nominal keseluruhan
         ];
 
         return response()->json([

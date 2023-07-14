@@ -14,7 +14,7 @@ class adminKategoriController extends Controller
     {
         $jenis = $request->jenis ? $request->jenis : "Pengeluaran";
         // dd($jenis);
-        $items = kategori::where("jenis", $jenis)->orderBy('nama', 'asc')->get();
+        $items = kategori::where("jenis", $jenis)->whereNull("deleted_at")->orderBy('nama', 'asc')->get();
         return response()->json([
             'success'    => true,
             'data'    => $items,
@@ -23,7 +23,18 @@ class adminKategoriController extends Controller
 
     public function index(Request $request)
     {
-        $items = kategori::orderBy('nama', 'asc')->get();
+        $jenis = $request->jenis ? $request->jenis : null;
+        if ($jenis) {
+            $items = kategori::orderBy('nama', 'asc')
+                ->whereNull("deleted_at")
+                ->where("jenis", $jenis)
+                ->get();
+        } else {
+            $items = kategori::orderBy('nama', 'asc')
+                ->whereNull("deleted_at")
+                ->whereIn("jenis", ["Pengeluaran", "Pemasukan"])
+                ->get();
+        }
         return response()->json([
             'success'    => true,
             'data'    => $items,

@@ -10,6 +10,17 @@ use Illuminate\Support\Facades\Validator;
 
 class adminKategoriController extends Controller
 {
+    public function get_jenis(Request $request)
+    {
+        $jenis = $request->jenis ? $request->jenis : "Pengeluaran";
+        // dd($jenis);
+        $items = kategori::where("jenis", $jenis)->orderBy('nama', 'asc')->get();
+        return response()->json([
+            'success'    => true,
+            'data'    => $items,
+        ], 200);
+    }
+
     public function index(Request $request)
     {
         $items = kategori::orderBy('nama', 'asc')->get();

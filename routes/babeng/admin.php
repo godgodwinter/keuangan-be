@@ -47,6 +47,9 @@ Route::middleware('auth:api')->group(
         Route::delete('/admin/transaksi/{item}/force', [adminTransaksiController::class, 'destroyForce']);
 
         // !baru
+        Route::get('/admin/data_kategori/jenis', [adminKategoriController::class, 'get_jenis']);
+
+
         Route::get('/admin/datatransaksi/ringkasan', [adminRekapController::class, 'ringkasan']);
         Route::get('/admin/datatransaksi/ringkasan/kategori', [adminRekapController::class, 'rekap_kategori']);
         Route::get('/admin/datatransaksi_pertahun/ringkasan', [adminRekapController::class, 'pertahun_ringkasan']);

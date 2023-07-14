@@ -309,11 +309,12 @@ class adminRekapController extends Controller
 
         // Ambil data transaksi berdasarkan bulan dan tahun ini
         $transaksi = DB::table('transaksi')
-            ->select('*')
+            ->join('kategori', 'transaksi.kategori_id', '=', 'kategori.id')
+            ->select('transaksi.*', 'kategori.nama AS kategori_nama')
             ->whereMonth('tgl', $month)
             ->whereYear('tgl', $year)
             ->where('tgl', '<=', $tanggalSekarang)
-            ->whereNull('deleted_at')
+            ->whereNull('transaksi.deleted_at')
             ->orderBy('tgl', 'desc')
             ->get();
 
@@ -366,13 +367,11 @@ class adminRekapController extends Controller
         $data = array_values($hasil);
 
         return response()->json([
-            'success'    => true,
-            'data'    => $data,
+            'success' => true,
+            'data' => $data,
             'rekap' => $rekap
-            // 'dataRekap'    => $dataRekap,
         ], 200);
     }
-
     public function transaksi_detail_bulanan(Request $request)
     {
         // request month, year

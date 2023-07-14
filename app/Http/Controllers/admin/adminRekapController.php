@@ -102,6 +102,7 @@ class adminRekapController extends Controller
                     $persentasePengeluaran = $total > 0 ? ($totalPengeluaran / $total) * 100 : 0;
 
                     $dataKategori[] = [
+                        'id' => $kategori->id,
                         'nama' => $kategori->nama,
                         'nominal' => $pengeluaran,
                         'persentase' => number_format($persentasePengeluaran, 2),
@@ -134,6 +135,7 @@ class adminRekapController extends Controller
                     $persentasePemasukan = $total > 0 ? ($totalPemasukan / $total) * 100 : 0;
 
                     $dataKategori[] = [
+                        'id' => $kategori->id,
                         'nama' => $kategori->nama,
                         'nominal' => $Pemasukan,
                         'persentase' => number_format($persentasePemasukan, 2),
@@ -153,6 +155,75 @@ class adminRekapController extends Controller
         ], 200);
     }
 
+    public function rekap_kategori_detail(Request $request, kategori $kategori_id)
+    {
+        $k_id = $kategori_id->id;
+        $month = $request->month ? $request->month : date('m');
+        $year = $request->year ? $request->year : date('Y');
+        $hasil = [];
+
+        // Ambil tanggal sekarang
+        $tanggalSekarang = date('Y-m-d');
+
+        // Ambil data transaksi berdasarkan bulan, tahun, dan kategori_id
+        $transaksi = DB::table('transaksi')
+            ->join('kategori', 'transaksi.kategori_id', '=', 'kategori.id')
+            ->select('transaksi.*', 'kategori.nama AS kategori_nama')
+            ->whereMonth('transaksi.tgl', $month)
+            ->whereYear('transaksi.tgl', $year)
+            ->where('transaksi.kategori_id', $k_id)
+            ->where('transaksi.tgl', '<=', $tanggalSekarang)
+            ->whereNull('transaksi.deleted_at')
+            ->orderBy('transaksi.tgl', 'desc')
+            ->get();
+
+        // Inisialisasi variabel rekap
+        $jml_tgl = 0;
+        $jml_trans = 0;
+
+        // Looping data transaksi
+        foreach ($transaksi as $item) {
+            $tgl = date('Y-m-d', strtotime($item->tgl));
+
+            // Cek apakah tanggal sudah ada dalam hasil
+            $tglIndex = null;
+            foreach ($hasil as $key => $data) {
+                if ($data['nama'] === $tgl) {
+                    $tglIndex = $key;
+                    break;
+                }
+            }
+
+            // Jika tanggal belum ada dalam hasil, tambahkan data baru
+            if ($tglIndex === null) {
+                $tglIndex = count($hasil);
+                $hasil[] = [
+                    'id' => $tglIndex + 1,
+                    'nama' => $tgl,
+                    'detail' => []
+                ];
+                $jml_tgl++; // Tambahkan jumlah tanggal
+            }
+
+            // Tambahkan transaksi ke detail
+            $item->kategori_nama = $item->kategori_nama; // Tambahkan kategori_nama
+            $hasil[$tglIndex]['detail'][] = $item;
+            $jml_trans++; // Tambahkan jumlah transaksi
+        }
+
+        // Buat array rekap
+        $rekap = [
+            'jml_tgl' => $jml_tgl,
+            'jml_transaksi' => $jml_trans,
+            'kategori_nama' => $kategori_id->nama,
+        ];
+
+        return response()->json([
+            'success' => true,
+            'data' => $hasil,
+            'rekap' => $rekap
+        ], 200);
+    }
 
     public function pertahun_ringkasan(Request $request)
     {

@@ -370,6 +370,137 @@ class adminRekapController extends Controller
     }
 
 
+    public function transaksi_detail_less(Request $request)
+    {
+        // request month, year
+        $month = $request->month ? $request->month : date('m');
+        $year = $request->year ? $request->year : date('Y');
+        $data = [];
+        // Inisialisasi total pemasukan dan pengeluaran
+        $totalPemasukan = 0;
+        $totalPengeluaran = 0;
+
+        // Ambil tanggal sekarang
+        $tanggalSekarang = date('Y-m-d');
+
+        // Ambil data transaksi berdasarkan bulan dan tahun ini
+        $transaksi = DB::table('transaksi')
+            ->join('kategori', 'transaksi.kategori_id', '=', 'kategori.id')
+            ->select('transaksi.*', 'kategori.nama AS kategori_nama')
+            ->whereMonth('tgl', $month)
+            ->whereYear('tgl', $year)
+            ->where('tgl', '<=', $tanggalSekarang)
+            ->whereNull('transaksi.deleted_at')
+            ->orderBy('tgl', 'desc')
+            ->get();
+
+        // Inisialisasi array hasil
+        $hasil = [];
+        $nomer_trans = 0;
+        // Looping data transaksi
+        foreach ($transaksi as $item) {
+
+            $tgl = date('Y-m-d', strtotime($item->tgl));
+
+            // Cek apakah tanggal sudah ada dalam hasil
+            if (!array_key_exists($tgl, $hasil)) {
+                $nomer_trans++;
+                // Inisialisasi data tanggal pada hasil
+                $hasil[$tgl] = [
+                    'id' => $nomer_trans, // Menggunakan tanggal sebagai ID
+                    'nama' => $tgl,
+                    'pemasukan' => 0,
+                    'pengeluaran' => 0,
+                    'saldo' => 0,
+                    'jml_transaksi' => 0,
+                    'detail' => []
+                ];
+            }
+
+            // Tambahkan transaksi ke detail
+            $hasil[$tgl]['detail'][] = $item;
+
+            // Update total pemasukan atau pengeluaran
+            if ($item->jenis === 'Pemasukan') {
+                $hasil[$tgl]['pemasukan'] += $item->nominal;
+                $totalPemasukan += $item->nominal;
+            } else {
+                $hasil[$tgl]['pengeluaran'] += $item->nominal;
+                $totalPengeluaran += $item->nominal;
+            }
+
+            // Update jumlah transaksi
+            $hasil[$tgl]['jml_transaksi']++;
+        }
+
+
+        // Hitung saldo
+        $rekap = [
+            'pemasukan' => $totalPemasukan,
+            'pengeluaran' => $totalPengeluaran,
+            'saldo' => $totalPemasukan - $totalPengeluaran
+        ];
+
+        $jml = 0;
+        $hasil = [];
+        foreach ($transaksi as $item) {
+            // if ($jml <= 5) {
+            $tgl = date('Y-m-d', strtotime($item->tgl));
+
+            // Cek apakah tanggal sudah ada dalam hasil
+            if (!array_key_exists($tgl, $hasil)) {
+                $nomer_trans++;
+                // Inisialisasi data tanggal pada hasil
+                $hasil[$tgl] = [
+                    'id' => $nomer_trans, // Menggunakan tanggal sebagai ID
+                    'nama' => $tgl,
+                    'pemasukan' => 0,
+                    'pengeluaran' => 0,
+                    'saldo' => 0,
+                    'jml_transaksi' => 0,
+                    'detail' => []
+                ];
+            }
+
+            // Tambahkan transaksi ke detail
+            $hasil[$tgl]['detail'][] = $item;
+
+            // Update total pemasukan atau pengeluaran
+            if ($item->jenis === 'Pemasukan') {
+                $hasil[$tgl]['pemasukan'] += $item->nominal;
+                $totalPemasukan += $item->nominal;
+            } else {
+                $hasil[$tgl]['pengeluaran'] += $item->nominal;
+                $totalPengeluaran += $item->nominal;
+            }
+
+            // Update jumlah transaksi
+            $hasil[$tgl]['jml_transaksi']++;
+        }
+        // $jml++;
+
+        // Ubah bentuk hasil menjadi array objek
+        $hasil_shorted = $this->fn_potongHasil($hasil);
+        $data = array_values($hasil_shorted);
+
+        return response()->json([
+            'success' => true,
+            'data' => $data,
+            'rekap' => $rekap
+        ], 200);
+    }
+    function fn_potongHasil($hasil)
+    {
+        $hasilBaru = [];
+
+        // foreach ($hasil as $data) {
+        //     $dataBaru = $data;
+        //     $dataBaru['detail'] = array_slice($data['detail'], 0, 2); // Potong maksimal 2 data detail
+        //     $hasilBaru[] = $dataBaru;
+        // }
+
+        return array_slice($hasil, 0, 5);;
+    }
     public function transaksi_detail(Request $request)
     {
         // request month, year

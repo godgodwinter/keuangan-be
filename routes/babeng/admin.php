@@ -58,6 +58,8 @@ Route::middleware('auth:api')->group(
 
 
         Route::get('/admin/data_transaksi/detail', [adminRekapController::class, 'transaksi_detail']); //!detail harian
+        Route::post('/admin/data_transaksi/detail', [adminRekapController::class, 'transaksi_detail']); //!detail harian
+        Route::get('/admin/data_transaksi/detail_less', [adminRekapController::class, 'transaksi_detail_less']); //!detail harian
         Route::get('/admin/data_transaksi/detail/bulanan', [adminRekapController::class, 'transaksi_detail_bulanan']); //!detail bulanan
         Route::get('/admin/data_transaksi/detail/tahunan', [adminRekapController::class, 'transaksi_detail_tahunan']); //!detail tahunan
         // !baru

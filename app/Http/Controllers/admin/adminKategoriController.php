@@ -57,6 +57,7 @@ class adminKategoriController extends Controller
             array(
                 'nama'     =>   $request->nama,
                 'jenis'     =>   $request->jenis,
+                'username'     =>   $request->username,
                 'created_at' => date("Y-m-d H:i:s"),
                 'updated_at' => date("Y-m-d H:i:s")
             )
@@ -93,6 +94,7 @@ class adminKategoriController extends Controller
             ->update([
                 'nama'     =>   $request->nama,
                 'jenis'     =>   $request->jenis,
+                'username'     =>   $request->username,
                 'updated_at' => date("Y-m-d H:i:s")
             ]);
 

@@ -14,140 +14,198 @@ class adminTransaksiController extends Controller
 {
     public function index(Request $request)
     {
-        $items = transaksi::with('kategori')
-            ->with('users')
-            ->where('users_id', Auth::guard()->user()->id)
-            ->get();
+        $user = Auth::guard()->user();
+
+        // Query dasar
+        $query = transaksi::with(['kategori', 'users']);
+
+        // Jika bukan admin (id != 1) maka filter data hanya milik user tersebut
+        if ($user->id != 1) {
+            $query->where('users_id', $user->id);
+        }
+
+        $items = $query->get();
+
         $data = [];
         $dataRekap = (object)[
-            'pemasukan' => 0,
+            'pemasukan'   => 0,
             'pengeluaran' => 0,
-            'saldo' => 0,
+            'saldo'       => 0,
         ];
+
         foreach ($items as $item) {
-            $tempData = (object)[];
-            $tempData->id = $item->id;
-            $tempData->users_id = $item->users_id;
-            $tempData->users_nama = $item->users ? $item->users->nama : null;
-            $tempData->kategori_id = $item->kategori_id;
-            $tempData->kategori_nama = $item->kategori ? $item->kategori->nama : null;
-            $tempData->tgl = $item->tgl;
-            $tempData->nama = $item->nama;
-            $tempData->jenis = $item->jenis;
-            $tempData->nominal = $item->nominal;
-            $tempData->created_at = $item->created_at;
-            $tempData->updated_at = $item->updated_at;
-            $data[] = $tempData;
-            if ($item->jenis == 'Pemasukan') {
+            $milikSendiri = ($item->users_id == $user->id);
+            $data[] = (object)[
+                'id'            => $item->id,
+                'users_id'      => $item->users_id,
+                'users_nama'    => optional($item->users)->nama,
+                'users_username' => optional($item->users)->username, // ← ditambahkan
+                'milik_sendiri'  => $milikSendiri,    // ← DITAMBAHKAN
+                'kategori_id'   => $item->kategori_id,
+                'kategori_nama' => optional($item->kategori)->nama,
+                'tgl'           => $item->tgl,
+                'nama'          => $item->nama,
+                'jenis'         => $item->jenis,
+                'nominal'       => $item->nominal,
+                'created_at'    => $item->created_at,
+                'updated_at'    => $item->updated_at,
+            ];
+
+            // Rekapitulasi
+            if ($item->jenis === 'Pemasukan') {
                 $dataRekap->pemasukan += $item->nominal;
             } else {
                 $dataRekap->pengeluaran += $item->nominal;
             }
         }
+
         $dataRekap->saldo = $dataRekap->pemasukan - $dataRekap->pengeluaran;
+
         return response()->json([
-            'success'    => true,
-            'data'    => $data,
-            'dataRekap'    => $dataRekap,
+            'success'   => true,
+            'data'      => $data,
+            'dataRekap' => $dataRekap,
         ], 200);
     }
+
 
     public function rekap(Request $request)
     {
-        // request month, year
-        $month = $request->month ? $request->month : date('m');
-        $yaer = $request->yaer ? $request->yaer : date('Y');
-        $items = transaksi::with('kategori')
-            ->with('users')
-            ->where('users_id', Auth::guard()->user()->id)
-            ->whereMonth("tgl", $month)
-            ->whereYear("tgl", $yaer)
-            ->get();
-        // dd($month, $yaer, $items);
+        $user = Auth::guard()->user();
+
+        // Ambil month & year dari request, fallback ke tanggal sekarang
+        $month = $request->input('month', date('m'));
+        // Support kedua-duanya: "year" dan typo lama "yaer"
+        $year  = $request->input('year', $request->input('yaer', date('Y')));
+
+        // Query dasar
+        $query = transaksi::with(['kategori', 'users'])
+            ->whereMonth('tgl', $month)
+            ->whereYear('tgl', $year);
+
+        // Jika bukan admin (id != 1), filter berdasarkan users_id
+        if ($user->id != 1) {
+            $query->where('users_id', $user->id);
+        }
+
+        $items = $query->get();
+
         $data = [];
         $dataRekap = (object)[
-            'pemasukan' => 0,
+            'pemasukan'   => 0,
             'pengeluaran' => 0,
-            'saldo' => 0,
+            'saldo'       => 0,
         ];
 
         foreach ($items as $item) {
-            $tempData = (object)[];
-            $tempData->id = $item->id;
-            $tempData->users_id = $item->users_id;
-            $tempData->users_nama = $item->users ? $item->users->nama : null;
-            $tempData->kategori_id = $item->kategori_id;
-            $tempData->kategori_nama = $item->kategori ? $item->kategori->nama : null;
-            $tempData->tgl = $item->tgl;
-            $tempData->nama = $item->nama;
-            $tempData->jenis = $item->jenis;
-            $tempData->nominal = $item->nominal;
-            $tempData->created_at = $item->created_at;
-            $tempData->updated_at = $item->updated_at;
+            $milikSendiri = ($item->users_id == $user->id);
+            $tempData = (object)[
+                'id'             => $item->id,
+                'users_id'       => $item->users_id,
+                'users_nama'     => optional($item->users)->nama,
+                'users_username' => optional($item->users)->username,
+                'milik_sendiri'  => $milikSendiri,    // ← DITAMBAHKAN
+                'kategori_id'    => $item->kategori_id,
+                'kategori_nama'  => optional($item->kategori)->nama,
+                'tgl'            => $item->tgl,
+                'nama'           => $item->nama,
+                'jenis'          => $item->jenis,
+                'nominal'        => $item->nominal,
+                'created_at'     => $item->created_at,
+                'updated_at'     => $item->updated_at,
+            ];
+
             $data[] = $tempData;
-            if ($item->jenis == 'Pemasukan') {
+
+            if ($item->jenis === 'Pemasukan') {
                 $dataRekap->pemasukan += $item->nominal;
             } else {
                 $dataRekap->pengeluaran += $item->nominal;
             }
         }
+
         $dataRekap->saldo = $dataRekap->pemasukan - $dataRekap->pengeluaran;
+
         return response()->json([
-            'success'    => true,
-            'data'    => $data,
-            'dataRekap'    => $dataRekap,
+            'success'   => true,
+            'data'      => $data,
+            'dataRekap' => $dataRekap,
+            'filter'    => [
+                'month' => $month,
+                'year'  => $year,
+            ],
         ], 200);
     }
-    public function rekap_perkategori(kategori $kategori, Request $request)
+    public function rekap_perkategori(Kategori $kategori, Request $request)
     {
-        // request month, year
-        $month = $request->month ? $request->month : date('m');
-        $yaer = $request->yaer ? $request->yaer : date('Y');
-        $items = transaksi::with('kategori')
-            ->with('users')
-            ->where('users_id', Auth::guard()->user()->id)
-            ->whereMonth("tgl", $month)
-            ->whereYear("tgl", $yaer)
-            ->where('kategori_id', $kategori->id)
-            ->get();
-        // dd($month, $yaer, $items);
+        $user = Auth::guard()->user();
+
+        // Ambil month & year dari request, fallback ke tanggal sekarang
+        $month = $request->input('month', date('m'));
+        // Support "year" dan typo lama "yaer"
+        $year  = $request->input('year', $request->input('yaer', date('Y')));
+
+        // Query dasar
+        $query = transaksi::with(['kategori', 'users'])
+            ->whereMonth('tgl', $month)
+            ->whereYear('tgl', $year)
+            ->where('kategori_id', $kategori->id);
+
+        // Jika bukan admin (id != 1), filter berdasarkan users_id
+        if ($user->id != 1) {
+            $query->where('users_id', $user->id);
+        }
+
+        $items = $query->get();
+
         $data = [];
         $dataRekap = (object)[
-            'pemasukan' => 0,
+            'pemasukan'   => 0,
             'pengeluaran' => 0,
-            'saldo' => 0,
-            'total' => 0,
-            'nama' => "-",
+            'saldo'       => 0,
+            'total'       => 0,
+            'nama'        => $kategori->nama, // langsung set di sini
         ];
 
         foreach ($items as $item) {
-            $tempData = (object)[];
-            $tempData->id = $item->id;
-            $tempData->users_id = $item->users_id;
-            $tempData->users_nama = $item->users ? $item->users->nama : null;
-            $tempData->kategori_id = $item->kategori_id;
-            $tempData->kategori_nama = $item->kategori ? $item->kategori->nama : null;
-            $tempData->tgl = $item->tgl;
-            $tempData->nama = $item->nama;
-            $tempData->jenis = $item->jenis;
-            $tempData->nominal = $item->nominal;
-            $tempData->created_at = $item->created_at;
-            $tempData->updated_at = $item->updated_at;
+            $tempData = (object)[
+                'id'             => $item->id,
+                'users_id'       => $item->users_id,
+                'users_nama'     => optional($item->users)->nama,
+                'users_username' => optional($item->users)->username,
+                'kategori_id'    => $item->kategori_id,
+                'kategori_nama'  => optional($item->kategori)->nama,
+                'tgl'            => $item->tgl,
+                'nama'           => $item->nama,
+                'jenis'          => $item->jenis,
+                'nominal'        => $item->nominal,
+                'created_at'     => $item->created_at,
+                'updated_at'     => $item->updated_at,
+            ];
+
             $data[] = $tempData;
-            if ($item->jenis == 'Pemasukan') {
+
+            if ($item->jenis === 'Pemasukan') {
                 $dataRekap->pemasukan += $item->nominal;
-                $dataRekap->total += $item->nominal;
             } else {
                 $dataRekap->pengeluaran += $item->nominal;
-                $dataRekap->total += $item->nominal;
             }
-            $dataRekap->nama = $kategori->nama;
+
+            // total nominal, terlepas dari jenis
+            $dataRekap->total += $item->nominal;
         }
+
         $dataRekap->saldo = $dataRekap->pemasukan - $dataRekap->pengeluaran;
+
         return response()->json([
-            'success'    => true,
-            'data'    => $data,
-            'dataRekap'    => $dataRekap,
+            'success'   => true,
+            'data'      => $data,
+            'dataRekap' => $dataRekap,
+            'filter'    => [
+                'month'       => $month,
+                'year'        => $year,
+                'kategori_id' => $kategori->id,
+            ],
         ], 200);
     }
 
@@ -224,7 +282,7 @@ class adminTransaksiController extends Controller
                 'jenis'     =>   $request->jenis,
                 'nominal'     =>   $request->nominal,
                 'kategori_id'     =>   $request->kategori_id,
-                'users_id'     =>    Auth::guard()->user()->id,
+                // 'users_id'     =>    Auth::guard()->user()->id,
                 'updated_at' => date("Y-m-d H:i:s")
             ]);
 
